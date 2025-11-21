@@ -2,9 +2,25 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
 import LatestNews from "@/components/LatestNews";
-import { posts } from "@/data/posts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Post } from "@/types/post";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ['posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('posts_public_view')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      return data as Post[];
+    }
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -22,11 +38,23 @@ const Index = () => {
         </section>
 
         <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-48 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {posts?.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
 

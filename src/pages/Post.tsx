@@ -4,12 +4,58 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, ArrowLeft, User } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { posts } from "@/data/posts";
+import { supabase } from "@/integrations/supabase/client";
+import { Post as PostType } from "@/types/post";
 import ReactMarkdown from "react-markdown";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Post = () => {
   const { slug } = useParams();
-  const post = posts.find(p => p.slug === slug);
+  
+  const { data: post, isLoading } = useQuery({
+    queryKey: ['post', slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('posts_public_view')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as PostType | null;
+    }
+  });
+
+  const { data: otherPosts } = useQuery({
+    queryKey: ['other-posts', slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('posts_public_view')
+        .select('*')
+        .neq('slug', slug)
+        .limit(2);
+      
+      if (error) throw error;
+      return data as PostType[];
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <Skeleton className="h-10 w-32 mb-6" />
+          <Skeleton className="h-6 w-24 mb-4" />
+          <Skeleton className="h-16 w-full mb-6" />
+          <Skeleton className="h-8 w-48 mb-8" />
+          <Skeleton className="h-96 w-full mb-8" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   
   if (!post) {
     return (
@@ -25,8 +71,6 @@ const Post = () => {
       </div>
     );
   }
-
-  const otherPosts = posts.filter(p => p.slug !== slug).slice(0, 2);
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,9 +147,10 @@ const Post = () => {
           </ReactMarkdown>
         </div>
 
-        <div className="border-t border-border pt-8">
-          <h3 className="font-serif font-bold text-2xl mb-6">Leia também</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {otherPosts && otherPosts.length > 0 && (
+          <div className="border-t border-border pt-8">
+            <h3 className="font-serif font-bold text-2xl mb-6">Leia também</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {otherPosts.map((otherPost) => (
               <Link 
                 key={otherPost.slug}
@@ -124,8 +169,9 @@ const Post = () => {
                 </h4>
               </Link>
             ))}
+            </div>
           </div>
-        </div>
+        )}
       </article>
 
       <Footer />
