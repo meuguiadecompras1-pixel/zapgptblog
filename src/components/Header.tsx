@@ -12,10 +12,12 @@ const Header = () => {
       <Button variant="ghost" size="sm" asChild onClick={() => setOpen(false)}>
         <Link to="/">Início</Link>
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Automação</Button>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Delivery</Button>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Marketing</Button>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Tecnologia</Button>
+      <Button variant="ghost" size="sm" asChild onClick={() => setOpen(false)}>
+        <a href="https://zapgpt.shop" target="_blank" rel="noopener noreferrer">Loja</a>
+      </Button>
+      <Button variant="ghost" size="sm" asChild onClick={() => setOpen(false)}>
+        <Link to="/admin">Admin</Link>
+      </Button>
     </>
   );
 
