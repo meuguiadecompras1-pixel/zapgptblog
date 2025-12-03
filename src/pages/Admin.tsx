@@ -9,12 +9,45 @@ import Footer from "@/components/Footer";
 import PostForm from "@/components/admin/PostForm";
 import PostList from "@/components/admin/PostList";
 
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  image: string;
+  date: string;
+}
+
 const Admin = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const checkAdminRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
+
+      if (error) {
+        console.error("Error checking admin role:", error);
+        return false;
+      }
+
+      return data === true;
+    } catch (error) {
+      console.error("Error checking admin role:", error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -23,6 +56,10 @@ const Admin = () => {
         setUser(session?.user ?? null);
         if (!session) {
           navigate("/auth");
+        } else {
+          setTimeout(() => {
+            checkAdminRole(session.user.id).then(setIsAdmin);
+          }, 0);
         }
       }
     );
@@ -32,8 +69,12 @@ const Admin = () => {
       setUser(session?.user ?? null);
       if (!session) {
         navigate("/auth");
+      } else {
+        checkAdminRole(session.user.id).then((isAdminUser) => {
+          setIsAdmin(isAdminUser);
+          setLoading(false);
+        });
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -48,6 +89,20 @@ const Admin = () => {
     navigate("/");
   };
 
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+  };
+
+  const handlePostSaved = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    setEditingPost(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -58,6 +113,22 @@ const Admin = () => {
 
   if (!session) {
     return null;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-8 flex flex-col items-center justify-center">
+          <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
+          <p className="text-muted-foreground mb-4">
+            Você não tem permissão para acessar esta página.
+          </p>
+          <Button onClick={() => navigate("/")}>Voltar para Home</Button>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   return (
@@ -72,8 +143,13 @@ const Admin = () => {
         </div>
         
         <div className="grid gap-8">
-          <PostForm />
-          <PostList />
+          <PostForm
+            key={editingPost?.id || "new"}
+            editingPost={editingPost}
+            onCancelEdit={handleCancelEdit}
+            onPostSaved={handlePostSaved}
+          />
+          <PostList onEditPost={handleEditPost} refreshTrigger={refreshTrigger} />
         </div>
       </main>
       <Footer />
