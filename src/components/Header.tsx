@@ -1,23 +1,37 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
+const categories = [
+  { label: "Todos", value: "" },
+  { label: "Automação", value: "Automação" },
+  { label: "Delivery", value: "Delivery" },
+  { label: "Marketing", value: "Marketing Digital" },
+  { label: "Tecnologia", value: "Tecnologia" },
+];
+
 const Header = () => {
   const [open, setOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const currentCategory = searchParams.get("categoria") || "";
 
   const NavLinks = () => (
     <>
-      <Button variant="ghost" size="sm" asChild onClick={() => setOpen(false)}>
-        <Link to="/">Início</Link>
-      </Button>
-      <Button variant="ghost" size="sm" asChild onClick={() => setOpen(false)}>
-        <a href="https://zapgpt.shop" target="_blank" rel="noopener noreferrer">Loja</a>
-      </Button>
-      <Button variant="ghost" size="sm" asChild onClick={() => setOpen(false)}>
-        <Link to="/admin">Admin</Link>
-      </Button>
+      {categories.map((cat) => (
+        <Button
+          key={cat.value}
+          variant={currentCategory === cat.value ? "default" : "ghost"}
+          size="sm"
+          asChild
+          onClick={() => setOpen(false)}
+        >
+          <Link to={cat.value ? `/?categoria=${encodeURIComponent(cat.value)}` : "/"}>
+            {cat.label}
+          </Link>
+        </Button>
+      ))}
     </>
   );
 
@@ -48,7 +62,7 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-64">
               <div className="flex flex-col gap-4 mt-8">
-                <h2 className="font-serif font-bold text-xl text-primary mb-4">Menu</h2>
+                <h2 className="font-serif font-bold text-xl text-primary mb-4">Categorias</h2>
                 <nav className="flex flex-col gap-2">
                   <NavLinks />
                 </nav>

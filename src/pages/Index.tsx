@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
@@ -8,13 +9,22 @@ import { Post } from "@/types/post";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+  const categoryFilter = searchParams.get("categoria") || "";
+
   const { data: posts, isLoading } = useQuery({
-    queryKey: ['posts'],
+    queryKey: ['posts', categoryFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('posts_public_view')
         .select('*')
         .order('date', { ascending: false });
+      
+      if (categoryFilter) {
+        query = query.eq('category', categoryFilter);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as Post[];
@@ -29,11 +39,13 @@ const Index = () => {
       <main className="container mx-auto px-4 py-12">
         <section className="mb-12">
           <h2 className="font-serif font-bold text-3xl md:text-4xl mb-2 text-center">
-            Tecnologia, inovação e o mundo dos negócios
+            {categoryFilter || "Tecnologia, inovação e o mundo dos negócios"}
           </h2>
           <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
-            Descubra as últimas tendências em automação, marketing digital e tecnologia 
-            para revolucionar seu negócio
+            {categoryFilter 
+              ? `Artigos sobre ${categoryFilter.toLowerCase()}`
+              : "Descubra as últimas tendências em automação, marketing digital e tecnologia para revolucionar seu negócio"
+            }
           </p>
         </section>
 
@@ -48,6 +60,8 @@ const Index = () => {
                 </div>
               ))}
             </div>
+          ) : posts?.length === 0 ? (
+            <p className="text-center text-muted-foreground">Nenhum post encontrado nesta categoria.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts?.map((post) => (
