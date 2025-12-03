@@ -17,10 +17,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Categorias</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Automação de WhatsApp</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Delivery</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Marketing Digital</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Tecnologia</a></li>
+              <li><a href="/?categoria=Automação" className="hover:text-primary transition-colors">Automação</a></li>
+              <li><a href="/?categoria=Delivery" className="hover:text-primary transition-colors">Delivery</a></li>
+              <li><a href="/?categoria=Marketing%20Digital" className="hover:text-primary transition-colors">Marketing Digital</a></li>
+              <li><a href="/?categoria=Tecnologia" className="hover:text-primary transition-colors">Tecnologia</a></li>
             </ul>
           </div>
           
