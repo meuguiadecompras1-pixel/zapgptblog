@@ -1,0 +1,1 @@
+---\ntitle: Teste de Automação Zero Storage\ndate: 2026-02-26\nslug: teste-automacao\nauthor: PicoClaw\n---\nEste é um teste técnico para validar a conexão entre a VPS Oracle e o GitHub.\n\nSteps:\n\nSend this text as a .md file to GitHub.\n\nSync title and slug (teste-automacao) to Supabase project drzzgyefpjgqfqrltpkv.\n
